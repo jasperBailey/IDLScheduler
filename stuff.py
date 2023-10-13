@@ -2,9 +2,11 @@ import json
 
 
 def main():
-    teamData = readJsonFile("data.json")
+    teamData = readJsonFile("data.json")["teamAvailabilities"]
     pairingsData = createPairings(teamData)
-    print(fillScheduleDFS(pairingsData, len(teamData)))
+    print(pairingsData)
+    # print(fillScheduleDFS(pairingsData, len(teamData)))
+    # print(fillScheduleBF(pairingsData, len(teamData)))
 
 
 def readJsonFile(filePath):
@@ -15,6 +17,7 @@ def readJsonFile(filePath):
     # Returns:
     #
     # dict - containing the result of parsing the file as json
+
     with open(filePath) as jsonFile:
         return json.load(jsonFile)
 
@@ -48,23 +51,20 @@ def createPairings(teamData):
             matchupData = [frozenset([teamData[0][team1], teamData[0][team2]]), []]
 
             for week in range(numWeeks):
-                isWeekPossible = False
+                bestDayValue = 0
+                bestDay = 0
 
                 for day in range(7):
-                    if (
-                        float(teamData[1][team1][week][day])
-                        + float(teamData[1][team2][week][day])
-                        == 10
-                    ):
-                        isWeekPossible = True
-                        break
+                    dayValue = float(teamData[1][team1][week][day]) + float(
+                        teamData[1][team2][week][day]
+                    )
+                    if dayValue > bestDayValue:
+                        bestDayValue = dayValue
+                        bestDay = day
 
-                matchupData[1].append(isWeekPossible)
+                matchupData[1].append([bestDayValue, bestDay])
 
             pairingsData.append(matchupData)
-
-    # order matchups by number of possible weeks
-    pairingsData.sort(key=lambda e: e[1].count(True))
     return pairingsData
 
 
@@ -127,6 +127,10 @@ def fillScheduleDFS(pairingsData, numTeams, curSolution=None, depth=0):
                     curSolution[i].remove(pairingToPlace[0])
     print("cannot place pairing:", pairingToPlace, "at depth", depth)
     print("current solution:", curSolution)
+
+
+def fillScheduleBF(pairingsData, numTeams):
+    pass
 
 
 if __name__ == "__main__":
