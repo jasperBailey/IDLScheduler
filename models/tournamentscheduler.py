@@ -1,8 +1,12 @@
+import copy
+
+
 class TournamentScheduler:
     def __init__(self, teamsAvailabilities: dict):
         self.teamsAvailabilities = teamsAvailabilities
         self._numTeams = len(list(self.teamsAvailabilities))
         self._numWeeks = self._numTeams - 1
+        self._pairingsPerWeek = self._numTeams / 2
         self.pairings = None
 
     def getTeamsAvailabilities(self) -> dict:
@@ -52,7 +56,6 @@ class TournamentScheduler:
         return pairingsData
 
     def getScheduleBF(self, curSolution=None, depth=0):
-        isFinalLayer = False
         bestSol = None
         bestSolScore = 0
         # create empty solution if just starting
@@ -63,104 +66,52 @@ class TournamentScheduler:
                 curSolution.append([])
 
         pairingToPlace = self.getPairings()[depth]
+        pairingTeams = pairingToPlace[0]
 
-        for i in range(self._numWeeks):
+        for week in curSolution:
             bothTeamsFree = True
-            for pairing in curSolution[i]:
-                if not pairing[0].isdisjoint(pairingToPlace[0]):
+            for pairing in week:
+                if not pairing[0].isdisjoint(pairingTeams):
                     bothTeamsFree = False
                     break
             if not bothTeamsFree:
                 continue
 
-            curSolution[i].append(pairingToPlace)
+            week.append(pairingToPlace)
 
             if self.isSolutionFinished(curSolution):
-                isFinalLayer = True
-                return curSolution
+                solToReturn = []
+                for week2 in curSolution:
+                    solToReturn.append(week2[:])
+                week.remove(pairingToPlace)
+                return solToReturn
 
             nextSol = self.getScheduleBF(curSolution, depth + 1)
             nextSolScore = self.evaluateSolution(nextSol)
+
             if nextSolScore > bestSolScore:
                 bestSol = nextSol
                 bestSolScore = nextSolScore
 
             # remove the last pairing and continue trying to place
             # on subsequent weeks
-            curSolution[i].remove(pairingToPlace)
+            week.remove(pairingToPlace)
+
         return bestSol
 
     def isSolutionFinished(self, solution):
         for week in solution:
-            if len(week) != self._numTeams / 2:
+            if len(week) != self._pairingsPerWeek:
                 return False
+        # print(f"solution {solution} is finished")
         return True
 
     # returns the overall score of a solution (higher is better)
-    @staticmethod
-    def evaluateSolution(solution):
+    def evaluateSolution(self, solution):
         if solution == None:
             return 0
         solutionScore = 0
-        for week in range(len(solution)):
+        for week in range(self._numWeeks):
             for pairing in solution[week]:
                 solutionScore += pairing[1][week][0]
         return solutionScore
-
-    # def getScheduleDFS(self, curSolution=None, depth=0, minScore=):
-    #     # Parameters:
-    #     #
-    #     # curSolution: List | None - the current progress on the curSolution, as
-    #     #     a list of sets, with curSolution[x] giving the set of pairings on week x
-    #     #
-    #     # depth: int - the recursion depth, equal to the number of pairings
-    #     #     placed in curSolution
-    #     #
-    #     # Returns:
-    #     #
-    #     # List | None - The full schedule, if there is one, or None otherwise
-
-    #     # create empty solution if just starting
-    #     if curSolution == None:
-    #         curSolution = []
-    #         # create an empty set to hold pairings for the week
-    #         for i in range(self._numWeeks):
-    #             curSolution.append(set())
-
-    #     pairingToPlace = self.getPairings()[depth]
-
-    #     for i in range(self._numWeeks):
-    #         # check if the pairing can happen in that week
-    #         if not pairingToPlace[1][i]:
-    #             continue
-
-    #         # check if neither team already has a match that week
-    #         bothTeamsFree = True
-    #         for pairing in curSolution[i]:
-    #             if not pairing.isdisjoint(pairingToPlace[0]):
-    #                 bothTeamsFree = False
-    #                 break
-
-    #         if bothTeamsFree:
-    #             curSolution[i].add(pairingToPlace[0])
-
-    #             # check if solution is now finished
-    #             solutionFinished = True
-    #             for week in curSolution:
-    #                 if len(week) != self._numTeams / 2:
-    #                     solutionFinished = False
-    #                     break
-
-    #             if solutionFinished:
-    #                 return curSolution
-    #             else:
-    #                 nextSol = self.fillScheduleDFS(curSolution, depth + 1)
-    #                 if nextSol != None:
-    #                     return nextSol
-    #                 else:
-    #                     # if the next iteration couldn't find a valid solution,
-    #                     # remove the last pairing and continue trying to place
-    #                     # on subsequent weeks
-    #                     curSolution[i].remove(pairingToPlace[0])
-    #     print("cannot place pairing:", pairingToPlace, "at depth", depth)
-    #     print("current solution:", curSolution)

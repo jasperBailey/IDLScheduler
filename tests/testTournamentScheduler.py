@@ -11,7 +11,10 @@ class TestFunctions(unittest.TestCase):
 
     def testBruteForce(self):
         self.scheduler.createPairings()
-        self.assertEqual(self.scheduler.getScheduleBF(), [[], [], [], [], [], [], []])
+        result = self.scheduler.getScheduleBF()
+        print(result)
+        print(self.scheduler.evaluateSolution(result))
+        self.assertEqual(result, [[], [], [], [], [], [], []])
 
     # def testDepthFirstSearch(self):
     #     self.scheduler.createPairings()
