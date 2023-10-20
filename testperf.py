@@ -19,8 +19,32 @@ def benchIsDisjoint():
     print(timeit.Timer(scheduler.getScheduleBFDummy).timeit(number=100))
 
 
+def benchTypeConversion():
+    def TC():
+        hi = frozenset(["str1", "str2"])
+        for i in range(1000000):
+            hi2 = frozenset(hi)
+
+    print(timeit.Timer(TC).timeit(number=100))
+
+
+def benchReadListVsTuple():
+    def RL():
+        hi = ["str1", "str2", "str2", "str2", "str2", "str2", "str2"]
+        for i in range(1000000):
+            hi2 = hi[5]
+
+    def RL():
+        hi = ("str1", "str2", "str2", "str2", "str2", "str2", "str2")
+        for i in range(1000000):
+            hi2 = hi[5]
+
+    print("list: ", timeit.Timer(RL).timeit(number=100))
+    print("tuple: ", timeit.Timer(RL).timeit(number=100))
+
+
 def main():
-    benchBF()
+    benchReadListVsTuple()
 
 
 if __name__ == "__main__":
