@@ -7,6 +7,8 @@ class Pairing:
         self.teams = frozenset([team1Name, team2Name])
         self.weekScores = weekScores
         self.bestDays = bestDays
+        self.bestWeeks = list(range(len(weekScores)))
+        self.bestWeeks.sort(key=lambda i: weekScores[i])
 
     def getTeams(self):
         return self.teams
@@ -23,6 +25,9 @@ class Pairing:
     def getBestDays(self):
         return self.bestDays
 
+    def getBestWeeks(self):
+        return self.bestWeeks
+
     @classmethod
     def fromTeamAvailabilities(
         cls, team1Name: str, team2Name: str, team1Avail: list, team2Avail: list
@@ -31,12 +36,12 @@ class Pairing:
         weekScores = []
         bestDays = []
         for week in range(numWeeks):
-            bestDayValue = 0
+            bestDayValue = 1000
             bestDay = 0
 
             for day in range(7):
-                dayValue = float(team1Avail[week][day]) + float(team2Avail[week][day])
-                if dayValue > bestDayValue:
+                dayValue = team1Avail[week][day] + team2Avail[week][day]
+                if dayValue < bestDayValue:
                     bestDayValue = dayValue
                     bestDay = day
 

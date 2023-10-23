@@ -3,19 +3,17 @@ from models.pairing import *
 
 class Solution:
     def __init__(self, weeks: int, pairingsPerWeek: int):
-        self.weeks = weeks
+        self.numWeeks = weeks
         self.pairingsPerWeek = pairingsPerWeek
-        self.teamsPlayingInWeek = {}
-        self.pairings = []
+        self.teamsPlayingInWeek = []
         for i in range(weeks):
-            self.teamsPlayingInWeek[i] = set()
-            self.pairings.append(set())
+            self.teamsPlayingInWeek.append([])
         self.score = 0
         self.numPairings = 0
-        self.pairingsNeeded = weeks * (weeks + 1) / 2
+        self.pairingsNeeded = weeks * (weeks + 1) // 2
 
-    def getWeeks(self):
-        return self.weeks
+    def getNumWeeks(self):
+        return self.numWeeks
 
     def getPairingsPerWeek(self):
         return self.pairingsPerWeek
@@ -24,16 +22,13 @@ class Solution:
         return self.teamsPlayingInWeek[week]
 
     def addTeamToWeek(self, teamName, week):
-        self.teamsPlayingInWeek[week].add(teamName)
+        self.teamsPlayingInWeek[week].append(teamName)
 
     def removeTeamFromWeek(self, teamName, week):
         self.teamsPlayingInWeek[week].remove(teamName)
 
     def getScore(self):
         return self.score
-
-    def getPairings(self):
-        return self.pairings
 
     def getNumPairings(self):
         return self.numPairings
@@ -47,14 +42,12 @@ class Solution:
     def addPairing(self, pairing: Pairing, week) -> None:
         self.addTeamToWeek(pairing.getTeam1Name(), week)
         self.addTeamToWeek(pairing.getTeam2Name(), week)
-        self.pairings[week].add(pairing)
         self.numPairings += 1
         self.changeScore(pairing.getWeekScores()[week])
 
     def removePairing(self, pairing: Pairing, week) -> None:
         self.removeTeamFromWeek(pairing.getTeam1Name(), week)
         self.removeTeamFromWeek(pairing.getTeam2Name(), week)
-        self.pairings[week].remove(pairing)
         self.numPairings -= 1
         self.changeScore(-pairing.getWeekScores()[week])
 
