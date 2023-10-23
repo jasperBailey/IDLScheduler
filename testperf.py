@@ -4,7 +4,7 @@ from models.tournamentscheduler import TournamentScheduler
 
 
 def benchBF():
-    with open("data.json") as f:
+    with open("data/data.json") as f:
         data = json.load(f)
     scheduler = TournamentScheduler(data["teamAvailabilities"])
     scheduler.createPairings()
@@ -12,7 +12,7 @@ def benchBF():
 
 
 def benchIsDisjoint():
-    with open("data6.json") as f:
+    with open("data/data6.json") as f:
         data = json.load(f)
     scheduler = TournamentScheduler(data["teamAvailabilities"])
     scheduler.createPairings()

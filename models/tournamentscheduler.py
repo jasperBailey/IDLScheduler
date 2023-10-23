@@ -8,8 +8,26 @@ class TournamentScheduler:
         self.teamsAvailabilities = teamsAvailabilities
         self._numTeams = len(list(self.teamsAvailabilities))
         self._numWeeks = self._numTeams - 1
-        self._pairingsPerWeek = self._numTeams / 2
+        self._pairingsPerWeek = self._numTeams // 2
         self.createPairings()
+        self.numIters = 0
+        self.bestSol = None
+        self.bestSolScore = 10000
+
+    def getBestSol(self):
+        return self.bestSol
+
+    def setBestSol(self, value):
+        self.bestSol = value
+
+    def getBestSolScore(self):
+        return self.bestSolScore
+
+    def setBestSolScore(self, value):
+        self.bestSolScore = value
+
+    def emptySolution(self) -> Solution:
+        return Solution(self._numWeeks, self._pairingsPerWeek)
 
     def getTeamsAvailabilities(self) -> dict:
         return dict(self.teamsAvailabilities)
@@ -42,105 +60,52 @@ class TournamentScheduler:
                         team1, team2, teamsAvail[team1], teamsAvail[team2]
                     )
                 )
+
+        def evalPairingDifficulty(pairing):
+            return pairing.getWeekScores().count(0)
+
+        pairings.sort(key=evalPairingDifficulty)
+
         self.pairings = pairings
+        # print(pairings)
         return pairings
 
-    def getScheduleBF(self, curSolution=None, depth=0):
-        bestSol = None
-        bestSolScore = 0
-        # create empty solution if just starting
-        if curSolution == None:
-            curSolution = Solution(self._numWeeks, self._pairingsPerWeek)
+    def getScheduleBF(self, curSolution, depth=0):
+        # self.numIters += 1
 
         pairingToPlace = self.getPairings()[depth]
-        for i in range(self._numWeeks):
-            # if depth < 1:
-            #    print(depth, i)
+        for i in pairingToPlace.getBestWeeks():
+            # if depth < 2:
+            #     print(depth, i)
             if not curSolution.isValidPairing(pairingToPlace, i):
                 continue
 
             curSolution.addPairing(pairingToPlace, i)
 
+            if curSolution.getScore() >= self.getBestSolScore():
+                curSolution.removePairing(pairingToPlace, i)
+                continue
+
             if curSolution.isFinished():
                 solToReturn = []
-                score = curSolution.getScore()
-                for week in curSolution.getPairings():
-                    solToReturn.append(set(week))
+                self.setBestSolScore(curSolution.getScore())
+                for week in range(self._numWeeks):
+                    solToReturn.append(curSolution.getTeamsPlayingInWeek(week)[:])
+                self.setBestSol(solToReturn)
                 curSolution.removePairing(pairingToPlace, i)
-                return [solToReturn, score]
+                break
 
-            [nextSol, nextSolScore] = self.getScheduleBF(curSolution, depth + 1)
-
-            if nextSolScore > bestSolScore:
-                bestSol = nextSol
-                bestSolScore = nextSolScore
+            self.getScheduleBF(curSolution, depth + 1)
 
             # remove the last pairing and continue trying to place
             # on subsequent weeks
             curSolution.removePairing(pairingToPlace, i)
+            # if depth == 0:
+            #     break
 
-        return [bestSol, bestSolScore]
+        # if not bestSolScore and depth <= 7:
+        #     print(f"{depth} can't place {pairingToPlace.getTeams()} in {curSolution}")
 
-    def getScheduleBFOld(self, curSolution=None, depth=0):
-        bestSol = None
-        bestSolScore = 0
-        # create empty solution if just starting
-        if curSolution == None:
-            curSolution = []
-            # create an empty list to hold pairings for the week
-            for i in range(self._numWeeks):
-                curSolution.append([])
-
-        pairingToPlace = self.getPairings()[depth]
-        pairingTeams = pairingToPlace.getTeams()
-        # i = 0
-        for week in curSolution:
-            # if depth < 3:
-            #     print(depth, i)
-            # i += 1
-            bothTeamsFree = True
-            for pairing in week:
-                if not pairing.getTeams().isdisjoint(pairingTeams):
-                    bothTeamsFree = False
-                    break
-            if not bothTeamsFree:
-                continue
-
-            week.append(pairingToPlace)
-
-            if self.isSolutionFinished(curSolution):
-                solToReturn = []
-                for week2 in curSolution:
-                    solToReturn.append(week2[:])
-                week.remove(pairingToPlace)
-                return solToReturn
-
-            nextSol = self.getScheduleBFOld(curSolution, depth + 1)
-            nextSolScore = self.evaluateSolution(nextSol)
-
-            if nextSolScore > bestSolScore:
-                bestSol = nextSol
-                bestSolScore = nextSolScore
-
-            # remove the last pairing and continue trying to place
-            # on subsequent weeks
-            week.remove(pairingToPlace)
-
-        return bestSol
-
-    def isSolutionFinished(self, solution):
-        for week in solution:
-            if len(week) != self._pairingsPerWeek:
-                return False
-        # print(f"solution {solution} is finished")
-        return True
-
-    # returns the overall score of a solution (higher is better)
-    def evaluateSolution(self, solution):
-        if solution == None:
-            return 0
-        solutionScore = 0
-        for week in range(self._numWeeks):
-            for pairing in solution[week]:
-                solutionScore += pairing.getWeekScores()[week]
-        return solutionScore
+        if depth == 0:
+            # print(self.numIters)
+            return [self.bestSol, self.bestSolScore]
