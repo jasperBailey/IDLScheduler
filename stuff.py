@@ -1,5 +1,5 @@
 import json
-import itertools
+from itertools import *
 
 
 def subData():
@@ -18,31 +18,57 @@ def subData():
     print(result)
 
 
+def hasNoRepeatedTeam(week):
+    teams = []
+    for pairing in week:
+        for team in pairing:
+            if team not in teams:
+                teams.append(team)
+            else:
+                return False
+    return True
+
+
+def removePairings(removeFrom, pairingsToRem):
+    result = removeFrom[:]
+    for week in removeFrom:
+        for pairing in pairingsToRem:
+            if pairing in week:
+                result.remove(week)
+                break
+
+    return result
+
+
 def printPerms():
-    teams = ["t1", "t2", "t3", "t4", "t5", "t6"]
+    teams = [1, 2, 3, 4, 5, 6, 7, 8]
 
-    # Generate all possible permutations of the teams
-    team_permutations = list(itertools.permutations(teams, 2))
+    pairings = list(combinations(teams, 2))
 
-    # Create a list to store the schedules
-    schedules = []
+    possibleWeeks = list(filter(hasNoRepeatedTeam, combinations(pairings, 4)))
+    for i in range(len(possibleWeeks)):
+        possibleWeeks[i] = set(possibleWeeks[i])
+    solution = [possibleWeeks[0]]
+    possibleWeeks = removePairings(possibleWeeks, solution[0])
+    pWeeks = []
+    for i in range(6):
+        pWeeks.append(possibleWeeks[i * 10 : (i * 10) + 9])
 
-    # Iterate through the permutations and create schedules
-    for i in range(len(teams) - 1):
-        round_schedule = []
-        for j in range(len(team_permutations)):
-            round_schedule.append(team_permutations[j])
-            if len(round_schedule) == len(teams) // 2:
-                schedules.append(round_schedule)
-                round_schedule = []
-            team_permutations = [team_permutations[-1]] + team_permutations[:-1]
+    solGen = solutionGenerator(solution, pWeeks)
 
-    # Display the schedules
-    for idx, schedule in enumerate(schedules):
-        print(f"Schedule {idx + 1}:")
-        for match in schedule:
-            print(f"{match[0]} vs {match[1]}")
-        print()
+    print(next(solGen))
+
+
+def solutionGenerator(initialSol, possibleWeeks):
+    solution = initialSol[:]
+    for weekset in possibleWeeks:
+        for week in weekset:
+            for solweek in solution:
+                if not week.isdisjoint(solweek):
+                    break
+            else:
+                solution.append(week)
+    yield solution
 
 
 def main():

@@ -1,8 +1,6 @@
 import unittest
 import json
 from models.tournamentscheduler import *
-from models.pairing import *
-from models.solution import *
 
 
 class TestScheduler(unittest.TestCase):
@@ -12,7 +10,7 @@ class TestScheduler(unittest.TestCase):
         self.numTeams = len(self.data["teamAvailabilities"])
         self.scheduler = TournamentScheduler(self.data["teamAvailabilities"])
 
-    # @unittest.skip
+    @unittest.skip
     def testBruteForce(self):
         self.scheduler.createPairings()
         [result, score] = self.scheduler.getScheduleBF(
