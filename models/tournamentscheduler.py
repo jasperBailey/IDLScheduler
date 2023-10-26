@@ -67,16 +67,12 @@ class TournamentScheduler:
         pairings.sort(key=evalPairingDifficulty)
 
         self.pairings = pairings
-        # print(pairings)
         return pairings
 
     def getScheduleBF(self, curSolution, depth=0):
-        # self.numIters += 1
-
+        self.numIters += 1
         pairingToPlace = self.getPairings()[depth]
         for i in pairingToPlace.getBestWeeks():
-            # if depth < 2:
-            #     print(depth, i)
             if not curSolution.isValidPairing(pairingToPlace, i):
                 continue
 
@@ -97,15 +93,8 @@ class TournamentScheduler:
 
             self.getScheduleBF(curSolution, depth + 1)
 
-            # remove the last pairing and continue trying to place
-            # on subsequent weeks
             curSolution.removePairing(pairingToPlace, i)
-            # if depth == 0:
-            #     break
-
-        # if not bestSolScore and depth <= 7:
-        #     print(f"{depth} can't place {pairingToPlace.getTeams()} in {curSolution}")
 
         if depth == 0:
-            # print(self.numIters)
+            print(self.numIters)
             return [self.bestSol, self.bestSolScore]
