@@ -12,7 +12,7 @@ def subData():
         for week in tA[team]:
             weekAvail = []
             for day in week:
-                weekAvail.append(int(day * 100))
+                weekAvail.append(int(day / 10))
             availToAdd.append(weekAvail)
         result[team] = availToAdd
     print(result)
@@ -72,7 +72,7 @@ def solutionGenerator(initialSol, possibleWeeks):
 
 
 def main():
-    printPerms()
+    subData()
 
 
 if __name__ == "__main__":

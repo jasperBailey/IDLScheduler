@@ -12,8 +12,7 @@ class TestScheduler(unittest.TestCase):
 
     @unittest.skip
     def testBruteForce(self):
-        self.scheduler.createPairings()
-        [result, score] = self.scheduler.getScheduleBF(
+        [result, score] = self.scheduler.getBestSchedule(
             curSolution=self.scheduler.emptySolution()
         )
         print(result)
@@ -22,5 +21,10 @@ class TestScheduler(unittest.TestCase):
     @unittest.skip
     def testGetTeams(self):
         self.assertEqual(
-            self.scheduler.getTeamsAvailabilities(), self.data["teamAvailabilities"]
+            len(self.scheduler.getTeamsAvailabilities()),
+            8,
         )
+        print(self.scheduler.getTeamsAvailabilities())
+
+    def testGetBestSchedule(self):
+        print(self.scheduler.calcBestSchedule())

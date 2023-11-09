@@ -1,18 +1,20 @@
+from models.onefactoriser import OneFactoriser
+from itertools import permutations
 from models.pairing import Pairing
-from models.solution import Solution
-import copy
 
 
 class TournamentScheduler:
     def __init__(self, teamsAvailabilities: dict):
-        self.teamsAvailabilities = teamsAvailabilities
+        self.teams = list(teamsAvailabilities)
+        self.teamsAvailabilities = [teamsAvailabilities[name] for name in self.teams]
         self._numTeams = len(list(self.teamsAvailabilities))
         self._numWeeks = self._numTeams - 1
         self._pairingsPerWeek = self._numTeams // 2
-        self.createPairings()
-        self.numIters = 0
         self.bestSol = None
         self.bestSolScore = 10000
+        self.onefactoriser = OneFactoriser(self._numTeams)
+        self._rangeNumWeeks = range(self._numWeeks)
+        self.pairings = self.createPairings()
 
     def getBestSol(self):
         return self.bestSol
@@ -26,14 +28,30 @@ class TournamentScheduler:
     def setBestSolScore(self, value):
         self.bestSolScore = value
 
-    def emptySolution(self) -> Solution:
-        return Solution(self._numWeeks, self._pairingsPerWeek)
+    def getTeamsAvailabilities(self) -> list:
+        return self.teamsAvailabilities
 
-    def getTeamsAvailabilities(self) -> dict:
-        return dict(self.teamsAvailabilities)
+    def getTeams(self):
+        return self.teams
 
-    def getPairings(self) -> list:
-        return self.pairings[:]
+    def calcBestSchedule(self):
+        for onefactorisation in self.onefactoriser.oneFactorisations():
+            for schedule in permutations(onefactorisation):
+                solScore = self.calcSolScore(schedule)
+                if solScore < self.getBestSolScore():
+                    self.setBestSolScore(solScore)
+                    self.setBestSol(schedule)
+        return [self.getBestSol(), self.getBestSolScore()]
+
+    def calcSolScore(self, schedule):
+        # TODO: refactor to use dynamic programming (this may take major rewrite)
+        score = 0
+        for i in self._rangeNumWeeks:
+            for match in schedule[i]:
+                score += self.pairings[match[0]][match[1]].getWeekScores()[i]
+            if score >= self.bestSolScore:
+                return score
+        return score
 
     def createPairings(self) -> list:
         # Returns:
@@ -44,57 +62,20 @@ class TournamentScheduler:
         #   whether that matchup can take place on that week
 
         teamsAvail = self.getTeamsAvailabilities()
-        teamNames = list(teamsAvail)
-        pairings = []
+        teamNames = self.getTeams()
+        pairings = {}
 
         # create list of possible matchups and list of matchup availabilities
         # in each time period (week)
         for i in range(self._numTeams):
+            pairings[i] = {}
             for j in range(i, self._numTeams):
                 if i == j:
                     continue
                 team1 = teamNames[i]
                 team2 = teamNames[j]
-                pairings.append(
-                    Pairing.fromTeamAvailabilities(
-                        team1, team2, teamsAvail[team1], teamsAvail[team2]
-                    )
+                pairings[i][j] = Pairing.fromTeamAvailabilities(
+                    team1, team2, teamsAvail[i], teamsAvail[j]
                 )
 
-        def evalPairingDifficulty(pairing):
-            return pairing.getWeekScores().count(0)
-
-        pairings.sort(key=evalPairingDifficulty)
-
-        self.pairings = pairings
         return pairings
-
-    def getScheduleBF(self, curSolution, depth=0):
-        self.numIters += 1
-        pairingToPlace = self.getPairings()[depth]
-        for i in pairingToPlace.getBestWeeks():
-            if not curSolution.isValidPairing(pairingToPlace, i):
-                continue
-
-            curSolution.addPairing(pairingToPlace, i)
-
-            if curSolution.getScore() >= self.getBestSolScore():
-                curSolution.removePairing(pairingToPlace, i)
-                continue
-
-            if curSolution.isFinished():
-                solToReturn = []
-                self.setBestSolScore(curSolution.getScore())
-                for week in range(self._numWeeks):
-                    solToReturn.append(curSolution.getTeamsPlayingInWeek(week)[:])
-                self.setBestSol(solToReturn)
-                curSolution.removePairing(pairingToPlace, i)
-                break
-
-            self.getScheduleBF(curSolution, depth + 1)
-
-            curSolution.removePairing(pairingToPlace, i)
-
-        if depth == 0:
-            print(self.numIters)
-            return [self.bestSol, self.bestSolScore]

@@ -15,6 +15,8 @@ class OneFactoriser:
         self.createBaseOneFactorisations(self.getInitialSol())
         self.applyMappings()
 
+        return self.getOneFactorisations()
+
     def createX1(self):
         self.x1 = set()
         for i in range(0, self.n, 2):
@@ -42,15 +44,15 @@ class OneFactoriser:
         return self._edgesToAdd[:]
 
     def createEdges(self):
-        pairings = []
+        edges = []
 
         # create list of possible matchups in each time period (week)
         for i in range(1, self.n):
             for j in range(i, self.n):
                 if i == j or (not i % 2 and j == i + 1):
                     continue
-                pairings.append(frozenset([i, j]))
-        return pairings
+                edges.append(frozenset([i, j]))
+        return edges
 
     def createOneFactors(self, solution=None, oneFactor=None, depth=0, i=-1):
         # returns a list of n-2 lists, each sublist is the set of one-factors
@@ -143,8 +145,8 @@ class OneFactoriser:
         return result
 
     def applyMappings(self):
-        w1 = self.getW1()[1:]
-
+        w1 = self.getW1()
+        oneFactorisationsFinal = []
         for b1F in self.getOneFactorisationsAsLists():
             for mapping in w1:
                 oneFactorisationToAdd = set()
@@ -153,13 +155,14 @@ class OneFactoriser:
                     oneFactorToAdd = set()
 
                     for pairing in onefactor:
-                        pairingToAdd = set()
+                        pairingToAdd = []
 
                         for team in pairing:
-                            pairingToAdd.add(mapping[team])
+                            pairingToAdd.append(mapping[team])
 
-                        oneFactorToAdd.add(frozenset(pairingToAdd))
+                        oneFactorToAdd.add(tuple(sorted(pairingToAdd)))
 
                     oneFactorisationToAdd.add(frozenset(oneFactorToAdd))
 
-                self._oneFactorisations.append(frozenset(oneFactorisationToAdd))
+                oneFactorisationsFinal.append(frozenset(oneFactorisationToAdd))
+        self._oneFactorisations = oneFactorisationsFinal
