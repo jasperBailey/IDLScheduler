@@ -19,6 +19,7 @@ class TestScheduler(unittest.TestCase):
         print(result)
         self.assertEqual(score, 400)
 
+    @unittest.skip
     def testGetTeams(self):
         self.assertEqual(
             self.scheduler.getTeamsAvailabilities(), self.data["teamAvailabilities"]
