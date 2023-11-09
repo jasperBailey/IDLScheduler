@@ -1,6 +1,3 @@
-from itertools import *
-
-
 class OneFactoriser:
     def __init__(self, n=8):
         self.n = n
@@ -14,6 +11,7 @@ class OneFactoriser:
         self.createW1()
         self._x1Mappings = []
         self._oneFactorisations = []
+        self._schedules = []
         self.createBaseOneFactorisations(self.getInitialSol())
         self.applyMappings()
 
@@ -24,6 +22,9 @@ class OneFactoriser:
 
     def getW1(self):
         return self._w1[:]
+
+    def getSchedules(self):
+        return self._schedules[:]
 
     def getX1Mappings(self):
         return self._x1Mappings[:]
@@ -122,6 +123,7 @@ class OneFactoriser:
                         for i in range(0, self.n, 2)
                     ]
                 )
+                setSol = [i for sublist in setSol for i in sublist]
                 if setSol not in self._w1:
                     self._w1.append(setSol[:])
             else:
@@ -141,5 +143,23 @@ class OneFactoriser:
         return result
 
     def applyMappings(self):
+        w1 = self.getW1()[1:]
+
         for b1F in self.getOneFactorisationsAsLists():
-            print(b1F)
+            for mapping in w1:
+                oneFactorisationToAdd = set()
+
+                for onefactor in b1F:
+                    oneFactorToAdd = set()
+
+                    for pairing in onefactor:
+                        pairingToAdd = set()
+
+                        for team in pairing:
+                            pairingToAdd.add(mapping[team])
+
+                        oneFactorToAdd.add(frozenset(pairingToAdd))
+
+                    oneFactorisationToAdd.add(frozenset(oneFactorToAdd))
+
+                self._oneFactorisations.append(frozenset(oneFactorisationToAdd))

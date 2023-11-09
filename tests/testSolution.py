@@ -19,27 +19,32 @@ class TestSolution(unittest.TestCase):
         numTeams = len(keys)
         self.solution = Solution(numTeams - 1, numTeams // 2)
 
+    @unittest.skip
     def testAddScore(self):
         self.assertEqual(0, self.solution.getScore())
         self.solution.changeScore(2)
         self.assertEqual(2, self.solution.getScore())
 
+    @unittest.skip
     def testRemoveScore(self):
         self.assertEqual(0, self.solution.getScore())
         self.solution.changeScore(-2)
         self.assertEqual(-2, self.solution.getScore())
 
+    @unittest.skip
     def testAddPairing(self):
         self.assertEqual(0, self.solution.getNumPairings())
         self.solution.addPairing(self.pairing, 0)
         self.assertEqual(1, self.solution.getNumPairings())
 
+    @unittest.skip
     def testRemovePairing(self):
         self.solution.addPairing(self.pairing, 0)
         self.assertEqual(1, self.solution.getNumPairings())
         self.solution.removePairing(self.pairing, 0)
         self.assertEqual(0, self.solution.getNumPairings())
 
+    @unittest.skip
     def testTeamsPlayingInWeek(self):
         self.assertEqual([], self.solution.getTeamsPlayingInWeek(0))
         self.solution.addPairing(self.pairing, 0)

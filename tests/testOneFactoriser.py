@@ -19,16 +19,28 @@ class TestOneFactoriser(unittest.TestCase):
     def testGetOneFactors(self):
         print(self.onefact.getOneFactors())
 
-    @unittest.skip
+    # @unittest.skip
     def testGetOneFactorisations(self):
-        print(self.onefact.getOneFactorisations()[0])
+        print(len(self.onefact.getOneFactorisations()))
 
     @unittest.skip
     def testGetW1(self):
         for thingy in self.onefact.getW1():
             print(thingy)
-        # print(self.onefact.getOneFactorisations()[0])
 
-    # @unittest.skip
+    @unittest.skip
     def testGetOneFactorisationsAsLists(self):
-        print(self.onefact.getOneFactorisationsAsLists()[0])
+        print(len(self.onefact.getOneFactorisationsAsLists()))
+
+    @unittest.skip
+    def testOnefactorisationUniqueness(self):
+        for oneFactorisation in self.onefact.getOneFactorisations():
+            count = 0
+            for oneFactorisation2 in self.onefact.getOneFactorisations():
+                if oneFactorisation == oneFactorisation2:
+                    count += 1
+            self.assertEqual(count, 1)
+
+    @unittest.skip
+    def testGetSchedules(self):
+        self.assertEqual(31449600, len(self.onefact.getSchedules()))
