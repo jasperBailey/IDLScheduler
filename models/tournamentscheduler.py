@@ -37,21 +37,17 @@ class TournamentScheduler:
     def calcBestSchedule(self):
         for onefactorisation in self.onefactoriser.oneFactorisations():
             for schedule in permutations(onefactorisation):
-                solScore = self.calcSolScore(schedule)
-                if solScore < self.getBestSolScore():
-                    self.setBestSolScore(solScore)
+                # solScore = self.calcSolScore(schedule)
+                score = 0
+                for i in self._rangeNumWeeks:
+                    for match in schedule[i]:
+                        score += self.pairings[match[0]][match[1]].getWeekScores()[i]
+                    if score >= self.bestSolScore:
+                        break
+                else:
+                    self.setBestSolScore(score)
                     self.setBestSol(schedule)
         return [self.getBestSol(), self.getBestSolScore()]
-
-    def calcSolScore(self, schedule):
-        # TODO: refactor to use dynamic programming (this may take major rewrite)
-        score = 0
-        for i in self._rangeNumWeeks:
-            for match in schedule[i]:
-                score += self.pairings[match[0]][match[1]].getWeekScores()[i]
-            if score >= self.bestSolScore:
-                return score
-        return score
 
     def createPairings(self) -> list:
         # Returns:

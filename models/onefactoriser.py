@@ -1,6 +1,8 @@
 class OneFactoriser:
     def __init__(self, n=8):
         self.n = n
+        self.generatedOneFactors = False
+        self.generatedOneFactorisations = False
 
     def oneFactorisations(self):
         self.createX1()
