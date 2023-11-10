@@ -166,5 +166,5 @@ class OneFactoriser:
 
                     oneFactorisationToAdd.add(frozenset(oneFactorToAdd))
 
-                oneFactorisationsFinal.append(frozenset(oneFactorisationToAdd))
+                oneFactorisationsFinal.append(tuple(oneFactorisationToAdd))
         self._oneFactorisations = oneFactorisationsFinal
