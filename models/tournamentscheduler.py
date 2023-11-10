@@ -16,11 +16,6 @@ class TournamentScheduler:
         self._rangeNumWeeks = range(self._numWeeks)
         self.pairings = self.createPairings()
 
-        self.possWeeks = self.createPossWeeks()
-
-    def getPossWeeks(self):
-        return self.possWeeks
-
     def getBestSol(self):
         return self.bestSol
 
@@ -61,38 +56,63 @@ class TournamentScheduler:
         oneFactorsRemaining,
         depth=0,
     ):
-        if library[weeksRemaining][oneFactorsRemaining]:
+        if (
+            frozenset(weeksRemaining) not in library.keys()
+        ):
+            library[frozenset(weeksRemaining)] = {}
+        if (
+            frozenset(oneFactorsRemaining)
+            in library[frozenset(weeksRemaining)].keys()
+        ):
+            print("hi")
             return library[weeksRemaining][oneFactorsRemaining]
 
         for oneFactorNum in oneFactorsRemaining:
             for weekNum in weeksRemaining:
-                currentScore += onefactorisation[oneFactorNum]
-                # FUCK NEED WEEK SCORES FOR EACH 1FACTOR, PROBABLY OOP REWRITE OF ONEFACTORISER NEEDED
+                # currentScore += onefactorisation[oneFactorNum]
+                # FUCK NEED WEEK SCORES FOR EACH 1FACTOR, CALC FOR EACH ONEFACTOR
+                # BEFOREHAND AND MAKE DICT WITH ONEFACTOR FROZENSET AS KEYS
 
                 if currentScore >= self.bestSolScore:
-                    currentScore -= onefactorisation[oneFactorNum]
+                    # currentScore -= onefactorisation[oneFactorNum]
                     continue
 
-                currentSol[weekNum] = onefactorisation[oneFactorNum]
+                weeksRemaining.remove(weekNum)
+                oneFactorsRemaining.remove(oneFactorNum)
+
+                if depth == 6:  # finished
+                    currentSol[weekNum] = onefactorisation[oneFactorNum]
+
+                    if #BLAHG
+                    library[frozenset(weeksRemaining)][
+                        frozenset[oneFactorsRemaining]
+                    ] = currentScore
+
+                    currentSol[weekNum] = None  # might be able to remove this
+                    # currentScore -= onefactorisation[oneFactorNum]
+
+                self.cbs1F(
+                    onefactorisation,
+                    currentSol,
+                    currentScore,
+                    library,
+                    weeksRemaining,
+                    oneFactorsRemaining,
+                    depth + 1,
+                )
+
+                weeksRemaining.add(weekNum)
+                oneFactorsRemaining.add(oneFactorNum)
 
     def calcBestSchedule(self):
         for onefactorisation in self.onefactoriser.oneFactorisations():
             self.cbs1F(
                 onefactorisation,
-                {
-                    0: None,
-                    1: None,
-                    2: None,
-                    3: None,
-                    4: None,
-                    5: None,
-                    6: None,
-                    7: None,
-                },
+                {0: None, 1: None, 2: None, 3: None, 4: None, 5: None, 6: None},
                 0,
                 {},
-                {0, 1, 2, 3, 4, 5, 6, 7},
-                {0, 1, 2, 3, 4, 5, 6, 7},
+                {0, 1, 2, 3, 4, 5, 6},
+                {0, 1, 2, 3, 4, 5, 6},
             )
         return [self.getBestSol(), self.getBestSolScore()]
 
