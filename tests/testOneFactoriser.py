@@ -15,9 +15,12 @@ class TestOneFactoriser(unittest.TestCase):
     def testInitialSol(self):
         print(self.onefact.getInitialSol())
 
-    @unittest.skip
+    # @unittest.skip
     def testGetOneFactors(self):
-        print(self.onefact.getOneFactors())
+        for oneFactor in self.onefact.getOneFactors():
+            for thing in oneFactor:
+                print(thing)
+            print()
 
     @unittest.skip
     def testGetOneFactorisations(self):

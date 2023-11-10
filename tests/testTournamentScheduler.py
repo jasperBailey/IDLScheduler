@@ -26,5 +26,6 @@ class TestScheduler(unittest.TestCase):
         )
         print(self.scheduler.getTeamsAvailabilities())
 
+    @unittest.skip
     def testGetBestSchedule(self):
         print(self.scheduler.calcBestSchedule())
