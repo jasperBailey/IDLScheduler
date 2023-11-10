@@ -16,6 +16,11 @@ class TournamentScheduler:
         self._rangeNumWeeks = range(self._numWeeks)
         self.pairings = self.createPairings()
 
+        self.possWeeks = self.createPossWeeks()
+
+    def getPossWeeks(self):
+        return self.possWeeks
+
     def getBestSol(self):
         return self.bestSol
 
@@ -34,19 +39,61 @@ class TournamentScheduler:
     def getTeams(self):
         return self.teams
 
+        # for schedule in permutations(onefactorisation):
+        #     # solScore = self.calcSolScore(schedule)
+        #     score = 0
+        #     for i in self._rangeNumWeeks:
+        #         for match in schedule[i]:
+        #             score += self.pairings[match[0]][match[1]].getWeekScores()[i]
+        #         if score >= self.bestSolScore:
+        #             break
+        #     else:
+        #         self.setBestSolScore(score)
+        #         self.setBestSol(schedule)
+
+    def cbs1F(
+        self,
+        onefactorisation,
+        currentSol,
+        currentScore,
+        library,
+        weeksRemaining,
+        oneFactorsRemaining,
+        depth=0,
+    ):
+        if library[weeksRemaining][oneFactorsRemaining]:
+            return library[weeksRemaining][oneFactorsRemaining]
+
+        for oneFactorNum in oneFactorsRemaining:
+            for weekNum in weeksRemaining:
+                currentScore += onefactorisation[oneFactorNum]
+                # FUCK NEED WEEK SCORES FOR EACH 1FACTOR, PROBABLY OOP REWRITE OF ONEFACTORISER NEEDED
+
+                if currentScore >= self.bestSolScore:
+                    currentScore -= onefactorisation[oneFactorNum]
+                    continue
+
+                currentSol[weekNum] = onefactorisation[oneFactorNum]
+
     def calcBestSchedule(self):
         for onefactorisation in self.onefactoriser.oneFactorisations():
-            for schedule in permutations(onefactorisation):
-                # solScore = self.calcSolScore(schedule)
-                score = 0
-                for i in self._rangeNumWeeks:
-                    for match in schedule[i]:
-                        score += self.pairings[match[0]][match[1]].getWeekScores()[i]
-                    if score >= self.bestSolScore:
-                        break
-                else:
-                    self.setBestSolScore(score)
-                    self.setBestSol(schedule)
+            self.cbs1F(
+                onefactorisation,
+                {
+                    0: None,
+                    1: None,
+                    2: None,
+                    3: None,
+                    4: None,
+                    5: None,
+                    6: None,
+                    7: None,
+                },
+                0,
+                {},
+                {0, 1, 2, 3, 4, 5, 6, 7},
+                {0, 1, 2, 3, 4, 5, 6, 7},
+            )
         return [self.getBestSol(), self.getBestSolScore()]
 
     def createPairings(self) -> list:
