@@ -38,12 +38,28 @@ class OneFactoriser:
 
     def getOneFactors(self):
         return self._oneFactors[:]
+    
+    def getAllOneFactors(self):
+        self.allEdges = self.createAllEdges()
+        oneFactors = self.createAllOneFactors()
+        return frozenset(oneFactors)
 
     def getInitialSol(self):
         return set(self.initialSol)
 
     def getEdges(self):
         return self._edgesToAdd[:]
+    
+    def createAllEdges(self):
+        edges = []
+
+        # create list of possible matchups in each time period (week)
+        for i in range(1, self.n):
+            for j in range(i, self.n):
+                if i == j:
+                    continue
+                edges.append(frozenset([i, j]))
+        return edges
 
     def createEdges(self):
         edges = []
@@ -55,6 +71,36 @@ class OneFactoriser:
                     continue
                 edges.append(frozenset([i, j]))
         return edges
+
+
+    def createAllOneFactors(self, solution=None, oneFactor=None, depth=0):
+        # returns a list of n-2 lists, each sublist is the set of one-factors
+        # containing {0, i+2}
+
+        # initial setup
+        if solution == None:
+            solution = set()
+            for i in range(self.n - 1):
+                oneFactor = set()
+                oneFactor.add(frozenset({0, i + 1}))
+                self.createAllOneFactors(solution, oneFactor, 1)
+
+            return frozenset(solution)
+        # recursive loop
+        else:
+            maxDepth = self.n // 2 - 1
+            for edge in self.allEdges:
+                if edge.isdisjoint([number for pair in oneFactor for number in pair]):
+                    oneFactor.add(edge)
+
+                    if depth == maxDepth:
+                        if oneFactor not in solution:
+                            solution.add(frozenset(oneFactor))
+                        oneFactor.remove(edge)
+                        break
+
+                    self.createAllOneFactors(solution, oneFactor, depth + 1)
+                    oneFactor.remove(edge)
 
     def createOneFactors(self, solution=None, oneFactor=None, depth=0, i=-1):
         # returns a list of n-2 lists, each sublist is the set of one-factors

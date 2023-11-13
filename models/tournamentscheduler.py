@@ -15,6 +15,10 @@ class TournamentScheduler:
         self.onefactoriser = OneFactoriser(self._numTeams)
         self._rangeNumWeeks = range(self._numWeeks)
         self.pairings = self.createPairings()
+        self.oneFactorScores = self.calcOneFactorScores()
+
+    def getOneFactorScores(self):
+        return dict(self.oneFactorScores)
 
     def getBestSol(self):
         return self.bestSol
@@ -33,6 +37,21 @@ class TournamentScheduler:
 
     def getTeams(self):
         return self.teams
+    
+    def calcOneFactorScores(self):
+        oneFactorMap = {}
+        for oneFactor in self.onefactoriser.getAllOneFactors():
+            weekScores = []
+            for i in self._rangeNumWeeks:
+                weekScores.append(0)
+            for match in oneFactor:
+                tMatch = tuple(match)
+                for i in self._rangeNumWeeks:
+                    weekScores[i] += self.pairings[tMatch[0]][tMatch[1]].getWeekScores()[i]
+            oneFactorMap[oneFactor] = weekScores
+        return oneFactorMap
+
+
 
         # for schedule in permutations(onefactorisation):
         #     # solScore = self.calcSolScore(schedule)
@@ -56,25 +75,26 @@ class TournamentScheduler:
         oneFactorsRemaining,
         depth=0,
     ):
+        #TODO Implement dynamic program with local best solutions.
+        # eg. pass into cbs1F the subproblem, rather than the macroproblem
+        # and incomplete solution  
+
         if (
-            frozenset(weeksRemaining) not in library.keys()
-        ):
-            library[frozenset(weeksRemaining)] = {}
-        if (
-            frozenset(oneFactorsRemaining)
+            frozenset(weeksRemaining) in library.keys()
+            and frozenset(oneFactorsRemaining)
             in library[frozenset(weeksRemaining)].keys()
         ):
             print("hi")
             return library[weeksRemaining][oneFactorsRemaining]
 
-        for oneFactorNum in oneFactorsRemaining:
-            for weekNum in weeksRemaining:
-                # currentScore += onefactorisation[oneFactorNum]
-                # FUCK NEED WEEK SCORES FOR EACH 1FACTOR, CALC FOR EACH ONEFACTOR
-                # BEFOREHAND AND MAKE DICT WITH ONEFACTOR FROZENSET AS KEYS
+        for oneFactorNum in set(oneFactorsRemaining):
+            if depth==0:
+                print(f"{oneFactorNum} {oneFactorsRemaining} {weeksRemaining}")
+            for weekNum in set(weeksRemaining):
+                currentScore += self.oneFactorScores[onefactorisation[oneFactorNum]]
 
                 if currentScore >= self.bestSolScore:
-                    # currentScore -= onefactorisation[oneFactorNum]
+                    currentScore -= self.oneFactorScores[onefactorisation[oneFactorNum]]
                     continue
 
                 weeksRemaining.remove(weekNum)
@@ -83,13 +103,14 @@ class TournamentScheduler:
                 if depth == 6:  # finished
                     currentSol[weekNum] = onefactorisation[oneFactorNum]
 
-                    if #BLAHG
-                    library[frozenset(weeksRemaining)][
-                        frozenset[oneFactorsRemaining]
-                    ] = currentScore
+
 
                     currentSol[weekNum] = None  # might be able to remove this
-                    # currentScore -= onefactorisation[oneFactorNum]
+                    currentScore -= self.oneFactorScores[onefactorisation[oneFactorNum]]
+
+                    weeksRemaining.add(weekNum)
+                    oneFactorsRemaining.add(oneFactorNum)
+                    break
 
                 self.cbs1F(
                     onefactorisation,
@@ -103,6 +124,11 @@ class TournamentScheduler:
 
                 weeksRemaining.add(weekNum)
                 oneFactorsRemaining.add(oneFactorNum)
+            break
+        
+        # if (frozenset(weeksRemaining) not in library.keys()):
+        #     library[frozenset(weeksRemaining)] = {}
+        
 
     def calcBestSchedule(self):
         for onefactorisation in self.onefactoriser.oneFactorisations():
@@ -112,7 +138,7 @@ class TournamentScheduler:
                 0,
                 {},
                 {0, 1, 2, 3, 4, 5, 6},
-                {0, 1, 2, 3, 4, 5, 6},
+                {0, 1, 2, 3, 4, 5, 6}
             )
         return [self.getBestSol(), self.getBestSolScore()]
 

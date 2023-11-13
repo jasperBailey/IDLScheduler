@@ -26,6 +26,9 @@ class TestScheduler(unittest.TestCase):
         )
         print(self.scheduler.getTeamsAvailabilities())
 
-    # @unittest.skip
+    @unittest.skip
     def testGetBestSchedule(self):
         print(self.scheduler.calcBestSchedule())
+
+    def testGetOneFactorScores(self):
+        print(self.scheduler.getOneFactorScores())
