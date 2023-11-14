@@ -1,6 +1,7 @@
 import unittest
 import json
 from models.tournamentscheduler import *
+from data.datarandomiser import *
 
 
 class TestScheduler(unittest.TestCase):
@@ -30,5 +31,14 @@ class TestScheduler(unittest.TestCase):
     def testGetBestSchedule(self):
         print(self.scheduler.calcBestSchedule())
 
+    @unittest.skip
     def testGetOneFactorScores(self):
         print(self.scheduler.getOneFactorScores())
+
+    # @unittest.skip
+    def testGetBestScheduleRandomData(self):
+        randomiser = DataRandomiser(self.numTeams)
+        randScheduler = TournamentScheduler(
+            randomiser.randomData()["teamAvailabilities"]
+        )
+        print(randScheduler.calcBestSchedule())

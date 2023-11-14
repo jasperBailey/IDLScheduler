@@ -38,7 +38,7 @@ class OneFactoriser:
 
     def getOneFactors(self):
         return self._oneFactors[:]
-    
+
     def getAllOneFactors(self):
         self.allEdges = self.createAllEdges()
         oneFactors = self.createAllOneFactors()
@@ -49,7 +49,7 @@ class OneFactoriser:
 
     def getEdges(self):
         return self._edgesToAdd[:]
-    
+
     def createAllEdges(self):
         edges = []
 
@@ -72,7 +72,6 @@ class OneFactoriser:
                 edges.append(frozenset([i, j]))
         return edges
 
-
     def createAllOneFactors(self, solution=None, oneFactor=None, depth=0):
         # returns a list of n-2 lists, each sublist is the set of one-factors
         # containing {0, i+2}
@@ -82,7 +81,7 @@ class OneFactoriser:
             solution = set()
             for i in range(self.n - 1):
                 oneFactor = set()
-                oneFactor.add(frozenset({0, i + 1}))
+                oneFactor.add(tuple({0, i + 1}))
                 self.createAllOneFactors(solution, oneFactor, 1)
 
             return frozenset(solution)
@@ -91,16 +90,16 @@ class OneFactoriser:
             maxDepth = self.n // 2 - 1
             for edge in self.allEdges:
                 if edge.isdisjoint([number for pair in oneFactor for number in pair]):
-                    oneFactor.add(edge)
+                    oneFactor.add(tuple(edge))
 
                     if depth == maxDepth:
                         if oneFactor not in solution:
                             solution.add(frozenset(oneFactor))
-                        oneFactor.remove(edge)
+                        oneFactor.remove(tuple(edge))
                         break
 
                     self.createAllOneFactors(solution, oneFactor, depth + 1)
-                    oneFactor.remove(edge)
+                    oneFactor.remove(tuple(edge))
 
     def createOneFactors(self, solution=None, oneFactor=None, depth=0, i=-1):
         # returns a list of n-2 lists, each sublist is the set of one-factors

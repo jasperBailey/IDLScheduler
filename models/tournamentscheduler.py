@@ -5,6 +5,7 @@ from models.pairing import Pairing
 
 class TournamentScheduler:
     def __init__(self, teamsAvailabilities: dict):
+        self.library = {}
         self.teams = list(teamsAvailabilities)
         self.teamsAvailabilities = [teamsAvailabilities[name] for name in self.teams]
         self._numTeams = len(list(self.teamsAvailabilities))
@@ -37,7 +38,7 @@ class TournamentScheduler:
 
     def getTeams(self):
         return self.teams
-    
+
     def calcOneFactorScores(self):
         oneFactorMap = {}
         for oneFactor in self.onefactoriser.getAllOneFactors():
@@ -47,11 +48,11 @@ class TournamentScheduler:
             for match in oneFactor:
                 tMatch = tuple(match)
                 for i in self._rangeNumWeeks:
-                    weekScores[i] += self.pairings[tMatch[0]][tMatch[1]].getWeekScores()[i]
+                    weekScores[i] += self.pairings[tMatch[0]][
+                        tMatch[1]
+                    ].getWeekScores()[i]
             oneFactorMap[oneFactor] = weekScores
         return oneFactorMap
-
-
 
         # for schedule in permutations(onefactorisation):
         #     # solScore = self.calcSolScore(schedule)
@@ -65,82 +66,67 @@ class TournamentScheduler:
         #         self.setBestSolScore(score)
         #         self.setBestSol(schedule)
 
-    def cbs1F(
-        self,
-        onefactorisation,
-        currentSol,
-        currentScore,
-        library,
-        weeksRemaining,
-        oneFactorsRemaining,
-        depth=0,
-    ):
-        #TODO Implement dynamic program with local best solutions.
-        # eg. pass into cbs1F the subproblem, rather than the macroproblem
-        # and incomplete solution  
+    def cbs1F(self, onefactorisation, weeksRemaining):
+        try:
+            return self.library[frozenset(weeksRemaining)][frozenset(onefactorisation)]
+        except:
+            pass
 
-        if (
-            frozenset(weeksRemaining) in library.keys()
-            and frozenset(oneFactorsRemaining)
-            in library[frozenset(weeksRemaining)].keys()
-        ):
-            print("hi")
-            return library[weeksRemaining][oneFactorsRemaining]
+        localBestScore = 10000
 
-        for oneFactorNum in set(oneFactorsRemaining):
-            if depth==0:
-                print(f"{oneFactorNum} {oneFactorsRemaining} {weeksRemaining}")
-            for weekNum in set(weeksRemaining):
-                currentScore += self.oneFactorScores[onefactorisation[oneFactorNum]]
-
-                if currentScore >= self.bestSolScore:
-                    currentScore -= self.oneFactorScores[onefactorisation[oneFactorNum]]
-                    continue
+        for oneFactor in onefactorisation:
+            for weekNum in weeksRemaining:
+                if len(weeksRemaining) == 1:
+                    return (
+                        {weekNum: oneFactor},
+                        self.oneFactorScores[oneFactor][weekNum],
+                    )
 
                 weeksRemaining.remove(weekNum)
-                oneFactorsRemaining.remove(oneFactorNum)
+                onefactorisation.remove(oneFactor)
 
-                if depth == 6:  # finished
-                    currentSol[weekNum] = onefactorisation[oneFactorNum]
-
-
-
-                    currentSol[weekNum] = None  # might be able to remove this
-                    currentScore -= self.oneFactorScores[onefactorisation[oneFactorNum]]
-
-                    weeksRemaining.add(weekNum)
-                    oneFactorsRemaining.add(oneFactorNum)
-                    break
-
-                self.cbs1F(
-                    onefactorisation,
-                    currentSol,
-                    currentScore,
-                    library,
-                    weeksRemaining,
-                    oneFactorsRemaining,
-                    depth + 1,
+                (currentSol, currentScore) = self.cbs1F(
+                    onefactorisation, weeksRemaining
                 )
 
+                currentSol[weekNum] = oneFactor
+                currentScore += self.oneFactorScores[oneFactor][weekNum]
+
+                if currentScore < localBestScore:
+                    localBestScore = currentScore
+                    localBestSol = currentSol
+
                 weeksRemaining.add(weekNum)
-                oneFactorsRemaining.add(oneFactorNum)
-            break
-        
-        # if (frozenset(weeksRemaining) not in library.keys()):
-        #     library[frozenset(weeksRemaining)] = {}
-        
+                onefactorisation.add(oneFactor)
+
+        try:
+            self.library[frozenset(weeksRemaining)][frozenset(onefactorisation)] = (
+                localBestSol,
+                localBestScore,
+            )
+        except:
+            self.library[frozenset(weeksRemaining)] = {}
+            self.library[frozenset(weeksRemaining)][frozenset(onefactorisation)] = (
+                localBestSol,
+                localBestScore,
+            )
+
+        return (localBestSol, localBestScore)
 
     def calcBestSchedule(self):
+        i = 0
         for onefactorisation in self.onefactoriser.oneFactorisations():
-            self.cbs1F(
-                onefactorisation,
-                {0: None, 1: None, 2: None, 3: None, 4: None, 5: None, 6: None},
-                0,
-                {},
-                {0, 1, 2, 3, 4, 5, 6},
-                {0, 1, 2, 3, 4, 5, 6}
+            (nextSol, nextSolScore) = self.cbs1F(
+                set(onefactorisation), {0, 1, 2, 3, 4, 5, 6}
             )
-        return [self.getBestSol(), self.getBestSolScore()]
+
+            if nextSolScore < self.getBestSolScore():
+                print(i)
+                self.setBestSol(nextSol)
+                self.setBestSolScore(nextSolScore)
+            i += 1
+
+        return (self.getBestSol(), self.getBestSolScore())
 
     def createPairings(self) -> list:
         # Returns:
