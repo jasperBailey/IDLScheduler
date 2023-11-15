@@ -35,10 +35,23 @@ class TestScheduler(unittest.TestCase):
     def testGetOneFactorScores(self):
         print(self.scheduler.getOneFactorScores())
 
-    # @unittest.skip
+    @unittest.skip
     def testGetBestScheduleRandomData(self):
         randomiser = DataRandomiser(self.numTeams)
-        randScheduler = TournamentScheduler(
-            randomiser.randomData()["teamAvailabilities"]
-        )
-        print(randScheduler.calcBestSchedule())
+        minscores = []
+        scores = []
+        diffs = []
+        for i in range(100):
+            print(i)
+            randScheduler = TournamentScheduler(
+                randomiser.randomData()["teamAvailabilities"]
+            )
+            result = randScheduler.calcBestSchedule()
+            print(result)
+            scores.append(result[1])
+            minscores.append(result[2])
+            diffs.append(result[1] - result[2])
+
+        print(f"scores: {scores}")
+        print(f"minscores: {minscores}")
+        print(f"diffs: {diffs}")

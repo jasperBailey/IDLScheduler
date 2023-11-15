@@ -11,6 +11,8 @@ class TournamentScheduler:
         self._numTeams = len(list(self.teamsAvailabilities))
         self._numWeeks = self._numTeams - 1
         self._pairingsPerWeek = self._numTeams // 2
+
+        self.minSolScore = self.calcMinSolScore()
         self.bestSol = None
         self.bestSolScore = 10000
         self.onefactoriser = OneFactoriser(self._numTeams)
@@ -54,79 +56,25 @@ class TournamentScheduler:
             oneFactorMap[oneFactor] = weekScores
         return oneFactorMap
 
-        # for schedule in permutations(onefactorisation):
-        #     # solScore = self.calcSolScore(schedule)
-        #     score = 0
-        #     for i in self._rangeNumWeeks:
-        #         for match in schedule[i]:
-        #             score += self.pairings[match[0]][match[1]].getWeekScores()[i]
-        #         if score >= self.bestSolScore:
-        #             break
-        #     else:
-        #         self.setBestSolScore(score)
-        #         self.setBestSol(schedule)
-
-    def cbs1F(self, onefactorisation, weeksRemaining):
-        try:
-            return self.library[frozenset(weeksRemaining)][frozenset(onefactorisation)]
-        except:
-            pass
-
-        localBestScore = 10000
-
-        for oneFactor in onefactorisation:
-            for weekNum in weeksRemaining:
-                if len(weeksRemaining) == 1:
-                    return (
-                        {weekNum: oneFactor},
-                        self.oneFactorScores[oneFactor][weekNum],
-                    )
-
-                weeksRemaining.remove(weekNum)
-                onefactorisation.remove(oneFactor)
-
-                (currentSol, currentScore) = self.cbs1F(
-                    onefactorisation, weeksRemaining
-                )
-
-                currentSol[weekNum] = oneFactor
-                currentScore += self.oneFactorScores[oneFactor][weekNum]
-
-                if currentScore < localBestScore:
-                    localBestScore = currentScore
-                    localBestSol = currentSol
-
-                weeksRemaining.add(weekNum)
-                onefactorisation.add(oneFactor)
-
-        try:
-            self.library[frozenset(weeksRemaining)][frozenset(onefactorisation)] = (
-                localBestSol,
-                localBestScore,
-            )
-        except:
-            self.library[frozenset(weeksRemaining)] = {}
-            self.library[frozenset(weeksRemaining)][frozenset(onefactorisation)] = (
-                localBestSol,
-                localBestScore,
-            )
-
-        return (localBestSol, localBestScore)
-
     def calcBestSchedule(self):
-        i = 0
         for onefactorisation in self.onefactoriser.oneFactorisations():
-            (nextSol, nextSolScore) = self.cbs1F(
-                set(onefactorisation), {0, 1, 2, 3, 4, 5, 6}
-            )
-
-            if nextSolScore < self.getBestSolScore():
-                print(i)
-                self.setBestSol(nextSol)
-                self.setBestSolScore(nextSolScore)
-            i += 1
-
-        return (self.getBestSol(), self.getBestSolScore())
+            for schedule in permutations(onefactorisation):
+                score = 0
+                for i in self._rangeNumWeeks:
+                    for match in schedule[i]:
+                        score += self.pairings[match[0]][match[1]].getWeekScores()[i]
+                    if score >= self.bestSolScore:
+                        break
+                else:
+                    self.setBestSolScore(score)
+                    self.setBestSol(schedule)
+                    if score == self.minSolScore:
+                        return (
+                            self.getBestSol(),
+                            self.getBestSolScore(),
+                            self.minSolScore,
+                        )
+        return (self.getBestSol(), self.getBestSolScore(), self.minSolScore)
 
     def createPairings(self) -> list:
         # Returns:
@@ -154,3 +102,10 @@ class TournamentScheduler:
                 )
 
         return pairings
+
+    def calcMinSolScore(self):
+        minScore = 0
+        for team in self.getTeamsAvailabilities():
+            for week in team:
+                minScore += min(week)
+        return minScore
